@@ -1,6 +1,6 @@
 # MacBook configuration
 
-Одна конфигурация `macbook`: nix-darwin задаёт настройки macOS, Home Manager — личное окружение и dotfiles, Homebrew — программы. Список пакетов хранится только в [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix).
+Одна конфигурация `macbook` для Mac на Apple Silicon (`aarch64-darwin`): nix-darwin задаёт настройки macOS, Home Manager — личное окружение и dotfiles, Homebrew — программы. Список пакетов хранится только в [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix).
 
 ## Установка
 
@@ -19,7 +19,7 @@ cd macbook-nix
 
 Перед применением проверить три места:
 
-- [flake.nix](flake.nix): `machine.username` должен совпадать с `id -un`. Значение по умолчанию — `ythosa`. `machine.system` — `aarch64-darwin` для Apple Silicon. Учётная запись уже должна существовать в macOS.
+- [flake.nix](flake.nix): `machine.username` должен совпадать с `id -un`. Значение по умолчанию — `ythosa`. Учётная запись уже должна существовать в macOS.
 - [home/git.nix](home/git.nix): личные имя и почта Git. Они не зависят от логина macOS и папки репозитория.
 - [modules/darwin/macos.nix](modules/darwin/macos.nix): предпочтения macOS. Сейчас выбраны `Europe/Moscow`, тёмная тема и выключенный application firewall.
 
@@ -29,8 +29,6 @@ make setup
 ```
 
 `setup` — короткое имя `switch`. Команда собирает систему, сверяет выбранного пользователя с текущим логином и запрашивает sudo для активации. Программы устанавливаются штатным модулем Homebrew во время активации; отдельный установщик поверх него не нужен. После завершения открыть новое окно Terminal.
-
-Текущий nixpkgs не поддерживает Intel Mac: [поддержка `x86_64-darwin` удалена в 26.11](https://nixos.org/manual/nixpkgs/unstable/release-notes#x86_64-darwin-26.11). Для Intel нужен согласованный набор более старых nixpkgs, nix-darwin и Home Manager; одной смены `machine.system` недостаточно.
 
 Если загрузка приложения прервалась, часть системных изменений уже могла примениться. Устранить причину, выполнить `make apps`, затем повторить `make switch`.
 
@@ -55,7 +53,7 @@ make setup
 
 | Файл | Что менять |
 | --- | --- |
-| [flake.nix](flake.nix) | Логин, архитектура, подключение модулей |
+| [flake.nix](flake.nix) | Логин и подключение модулей |
 | [modules/darwin/nix.nix](modules/darwin/nix.nix) | Nix и системная интеграция shell |
 | [modules/darwin/macos.nix](modules/darwin/macos.nix) | Dock, Finder, trackpad, язык и firewall |
 | [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix) | Программы, шрифты и taps |

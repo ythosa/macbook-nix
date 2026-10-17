@@ -19,7 +19,6 @@
     let
       machine = {
         username = "ythosa";
-        system = "aarch64-darwin";
       };
       macbook = darwin.lib.darwinSystem {
         modules = [
@@ -28,7 +27,7 @@
           ./modules/darwin/homebrew.nix
           home-manager.darwinModules.home-manager
           {
-            nixpkgs.hostPlatform = machine.system;
+            nixpkgs.hostPlatform = "aarch64-darwin";
             users.users.${machine.username}.home = "/Users/${machine.username}";
             system = {
               primaryUser = machine.username;
@@ -50,9 +49,9 @@
       darwinConfigurations = {
         inherit macbook;
       };
-      checks.${machine.system} = {
+      checks.aarch64-darwin = {
         macbook = macbook.config.system.build.toplevel;
       };
-      formatter.${machine.system} = macbook.pkgs.nixfmt;
+      formatter.aarch64-darwin = macbook.pkgs.nixfmt;
     };
 }
