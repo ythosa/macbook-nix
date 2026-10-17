@@ -122,7 +122,6 @@
       "coq-platform"
       "dbeaver-community"
       "dumkin/tap/k10s"
-      "gitkraken"
       "keycastr"
       "obs"
       "postman"
