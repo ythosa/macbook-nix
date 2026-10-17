@@ -14,6 +14,8 @@
         ci = "commit";
         st = "status";
       };
+      url."git@github.com:".insteadOf = "https://github.com/";
+      url."ssh://git@".insteadOf = "git://";
     };
   };
 }
