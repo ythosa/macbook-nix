@@ -17,9 +17,14 @@
       ...
     }:
     let
-      machine = {
-        username = "ythosa";
-      };
+      username =
+        let
+          user = builtins.getEnv "MACBOOK_NIX_USERNAME";
+        in
+        if user == "" || user == "root" then
+          throw "Run make from your macOS user account; it detects the login automatically."
+        else
+          user;
       macbook = darwin.lib.darwinSystem {
         modules = [
           ./modules/darwin/nix.nix
@@ -28,9 +33,9 @@
           home-manager.darwinModules.home-manager
           {
             nixpkgs.hostPlatform = "aarch64-darwin";
-            users.users.${machine.username}.home = "/Users/${machine.username}";
+            users.users.${username}.home = "/Users/${username}";
             system = {
-              primaryUser = machine.username;
+              primaryUser = username;
               configurationRevision = self.rev or self.dirtyRev or null;
               stateVersion = 7;
             };
@@ -39,7 +44,7 @@
               useUserPackages = true;
               # Never replace an existing backup during activation.
               backupFileExtension = "before-home-manager";
-              users.${machine.username} = ./home;
+              users.${username} = ./home;
             };
           }
         ];

@@ -2,6 +2,7 @@ import importlib.util
 from pathlib import Path
 import subprocess
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -10,6 +11,43 @@ spec = importlib.util.spec_from_file_location(
     'switch', Path(__file__).parents[1] / 'scripts/switch.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
+
+
+class InvokingUserTests(unittest.TestCase):
+    def test_normal_user_ignores_stale_sudo_and_username_variables(self):
+        with patch.object(module.os, 'geteuid', return_value=501), \
+                patch.object(module.os, 'getuid', return_value=501), \
+                patch.dict(module.os.environ, {'SUDO_UID': '0',
+                                              'MACBOOK_NIX_USERNAME': 'root'}), \
+                patch.object(module.pwd, 'getpwuid', return_value=
+                             SimpleNamespace(pw_name='alice')) as lookup:
+            self.assertEqual(module.invoking_username(), 'alice')
+        lookup.assert_called_once_with(501)
+
+    def test_sudo_activation_keeps_calling_user_when_environment_is_cleared(self):
+        with patch.object(module.os, 'geteuid', return_value=0), \
+                patch.dict(module.os.environ, {'SUDO_UID': '502', 'USER': 'root'},
+                           clear=True), \
+                patch.object(module.pwd, 'getpwuid', return_value=
+                             SimpleNamespace(pw_name='bob')), \
+                patch.object(module.Path, 'is_file', return_value=True), \
+                patch.object(module.sys, 'platform', 'darwin'), \
+                patch.object(module.sys, 'argv', ['switch.py', '--apply']), \
+                patch.object(module, 'backup_plan', return_value=[]), \
+                patch.object(module.subprocess, 'run', return_value=
+                             subprocess.CompletedProcess([], 0)) as run:
+            self.assertEqual(module.main(), 0)
+        command = run.call_args.args[0]
+        self.assertEqual(command[:2], ['/usr/bin/env', 'MACBOOK_NIX_USERNAME=bob'])
+        self.assertIn('--impure', command)
+
+    def test_direct_root_and_sudo_from_root_are_rejected(self):
+        for environment in ({}, {'SUDO_UID': '0'}):
+            with self.subTest(environment=environment), \
+                    patch.object(module.os, 'geteuid', return_value=0), \
+                    patch.dict(module.os.environ, environment, clear=True):
+                with self.assertRaisesRegex(ValueError, 'without sudo'):
+                    module.invoking_username()
 
 
 class SwitchTests(unittest.TestCase):

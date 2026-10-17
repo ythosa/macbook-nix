@@ -9,6 +9,8 @@ backup-before-nix file is recognized here.
 import argparse
 import os
 from pathlib import Path
+import pwd
+import shlex
 import subprocess
 import sys
 
@@ -19,6 +21,14 @@ if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
 fi
 # End Nix
 """
+
+
+def invoking_username():
+    """Use the real account ID, including when sudo cleared the environment."""
+    uid = int(os.environ.get('SUDO_UID', '0')) if os.geteuid() == 0 else os.getuid()
+    if uid == 0:
+        raise ValueError('Run make switch as your macOS user, without sudo.')
+    return pwd.getpwuid(uid).pw_name
 
 
 def matching_backup(source, backup):
@@ -80,16 +90,18 @@ def main():
     if args.apply and (sys.platform != 'darwin' or os.geteuid() != 0):
         parser.error('--apply must run on macOS as root, via make switch')
     try:
+        username = invoking_username()
         plan = backup_plan()
         for source, backup in plan:
             print('Back up {} -> {}'.format(source, backup), flush=True)
-        command = [str(rebuild), 'switch', '--flake', str(repo) + '#macbook',
-                   '--no-update-lock-file']
+        command = ['/usr/bin/env', 'MACBOOK_NIX_USERNAME=' + username,
+                   str(rebuild), 'switch', '--flake', str(repo) + '#macbook',
+                   '--impure', '--no-update-lock-file']
         if not args.apply:
-            print('Then run: ' + ' '.join(command))
+            print('Then run with sudo: ' + shlex.join(command))
             return 0
         return switch(plan, command)
-    except OSError as error:
+    except (OSError, KeyError, ValueError) as error:
         print('switch: ' + str(error), file=sys.stderr)
         return 1
 
