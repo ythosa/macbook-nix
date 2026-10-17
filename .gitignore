@@ -1,0 +1,14 @@
+.DS_Store
+result
+result-*
+.direnv/
+.env
+.env.*
+local/
+*.pem
+*.key
+*.p12
+*.pfx
+Brewfile
+Brewfile.tmp
+__pycache__/
