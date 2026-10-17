@@ -1,150 +1,146 @@
-# MacBook configuration
+# MacBook setup
 
-Одна конфигурация `macbook` для Mac на Apple Silicon (`aarch64-darwin`): nix-darwin задаёт настройки macOS, Home Manager — личное окружение и dotfiles, Homebrew — программы. Список пакетов хранится только в [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix).
+Apps, macOS settings, and personal config files for **Apple Silicon Macs**.
+Nix manages the system and config files; Homebrew installs apps. Your macOS username is detected automatically.
 
-## Установка
+## Set up a Mac
 
-Нужны Command Line Tools (`xcode-select --install`), [multi-user Nix](https://nixos.org/download/) и [Homebrew](https://docs.brew.sh/Installation). После их установки открыть новый Terminal и проверить:
+### 1. Install the required tools
+
+Open Terminal and run:
+
+```sh
+xcode-select --install
+```
+
+If the tools are already installed, continue. Otherwise, finish the installer. Then install [multi-user Nix for macOS](https://nixos.org/download/) and [Homebrew](https://docs.brew.sh/Installation). Follow their instructions for adding them to your shell.
+
+Open a new Terminal window and run:
 
 ```sh
 command -v nix brew git make
 ```
 
-Склонировать репозиторий в удобную папку. Её расположение на конфигурацию не влияет:
+You should see four paths. If a tool is missing, finish its installation before continuing.
+
+### 2. Download this repository
+
+Run this in any folder where you keep projects:
 
 ```sh
 git clone https://github.com/ythosa/macbook-nix.git
 cd macbook-nix
 ```
 
-Логин определяется автоматически по текущей учётной записи macOS. Запускать `make` от обычного пользователя: sudo будет запрошен только для активации. На новом Mac править `flake.nix` не нужно.
+### 3. Check the personal settings
 
-Перед применением проверить личные настройки:
+- [home/git.nix](home/git.nix): Git name and email.
+- [modules/darwin/macos.nix](modules/darwin/macos.nix): macOS preferences. Defaults include Moscow time, dark mode, and the application firewall turned off.
 
-- [home/git.nix](home/git.nix): личные имя и почта Git. Они не зависят от логина macOS и папки репозитория.
-- [modules/darwin/macos.nix](modules/darwin/macos.nix): предпочтения macOS. Сейчас выбраны `Europe/Moscow`, тёмная тема и выключенный application firewall.
+No username or folder paths need editing.
+
+### 4. Apply the setup
 
 ```sh
 make check
 make setup
 ```
 
-`setup` — короткое имя `switch`. Команда собирает систему для текущего пользователя и запрашивает sudo для активации. При повторном вычислении под sudo используется логин вызвавшего его пользователя, а не root. Программы устанавливаются штатным модулем Homebrew во время активации; отдельный установщик поверх него не нужен. После завершения открыть новое окно Terminal.
+Run these as your normal macOS user. `make setup` asks for your password when it needs administrator access; typing the password shows no characters. Wait for the command to finish, then open a new Terminal window.
 
-Если загрузка приложения прервалась, часть системных изменений уже могла примениться. Устранить причину, выполнить `make apps`, затем повторить `make switch`.
+Run all commands below from this repository's folder. Use `make`, which supplies the detected username and required Nix flags.
 
-## Команды
+## Common commands
 
-| Команда | Действие |
+| Command | What it does |
 | --- | --- |
-| `make` / `make check` | Тесты подготовки активации и проверка вычисления flake без сборки |
-| `make build` | Сборка без применения; результат доступен через `result` |
-| `make setup` / `make switch` | Сборка и активация macOS, dotfiles и Brew-программ |
-| `make apps` | Только установка недостающих Brew-программ |
-| `make apps-check` | Проверка наличия Brew-программ без установки |
-| `make brewfile` | Генерация локального `Brewfile`; файл исключён из Git |
-| `make fmt` | Форматирование Nix-файлов; нужен `rg` из ripgrep |
-| `make update` | Обновление Nix-зависимостей в `flake.lock` |
+| `make` / `make check` | Run safety tests and validate the configuration |
+| `make build` | Build without applying changes; output is linked at `result` |
+| `make setup` / `make switch` | Build and apply settings, config files, and Brew apps |
+| `make apps` | Install missing Brew apps without changing system settings |
+| `make apps-check` | Check whether Brew apps are installed |
+| `make brewfile` | Generate a local `Brewfile` from the app list |
+| `make fmt` | Format Nix files; requires `rg` from ripgrep |
+| `make update` | Update Nix dependencies in `flake.lock` |
 
-Все команды выполняются из корня репозитория. Кроме `update`, Nix-команды запрещают изменение lock-файла. Флаги `nix-command` и `flakes` передаются автоматически. Проверки и сборка могут обращаться к сети.
+## Change the setup
 
-Make передаёт результат `id -un` в `MACBOOK_NIX_USERNAME`. Для чтения этой переменной через [`builtins.getEnv`](https://nix.dev/manual/nix/2.34/language/builtins.html#builtins-getEnv) вычисления используют `--impure`; флаг уже добавлен в команды Make и скрипт активации. Версии зависимостей по-прежнему задаются `flake.lock`. Пустой логин и root отклоняются.
-
-После редактирования настроек выполнить `make check`, затем `make switch`. Новые файлы сначала добавить через `git add`: [Git-flake использует только отслеживаемые файлы](https://nix.dev/manual/nix/2.34/command-ref/new-cli/nix3-flake#types).
-
-## Структура
-
-| Файл | Что менять |
+| What to change | Where to edit |
 | --- | --- |
-| [flake.nix](flake.nix) | Подключение модулей и inputs |
-| [modules/darwin/nix.nix](modules/darwin/nix.nix) | Nix и системная интеграция shell |
-| [modules/darwin/macos.nix](modules/darwin/macos.nix) | Dock, Finder, trackpad, язык и firewall |
-| [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix) | Программы, шрифты и taps |
-| [home/default.nix](home/default.nix) | Личные модули и настройки текущего пользователя macOS |
-| [home/shell.nix](home/shell.nix) | zsh, PATH, история, aliases и NVM |
-| [home/git.nix](home/git.nix) | Имя, почта и aliases Git |
-| [home/runtime-configs.nix](home/runtime-configs.nix) | Правила установки файлов из [dotfiles/](dotfiles/) |
-| [scripts/switch.py](scripts/switch.py) | Безопасная подготовка после установщика Nix и запуск активации |
+| Apps and fonts | [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix) |
+| Dock, Finder, trackpad, timezone, firewall | [modules/darwin/macos.nix](modules/darwin/macos.nix) |
+| Shell, shortcuts, PATH, Node version manager | [home/shell.nix](home/shell.nix) |
+| Git name, email, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
+| App config files | [dotfiles/](dotfiles/) and the rules below |
+| Rules for installing config files | [home/runtime-configs.nix](home/runtime-configs.nix) |
 
-Чтобы добавить программу, достаточно одной записи в `homebrew.nix`. Чтобы разделить настройки по смыслу, добавить обычный Nix-модуль в `imports`. Дополнительные профили для одинакового окружения на другом Apple Silicon Mac не нужны: логин определяется при запуске.
+Add new files to Git with `git add path/to/file` so Nix can see them. Then apply your changes:
 
-Home Manager получает логин и домашнюю папку из nix-darwin. Пути к Brew вычисляются из `homebrew.prefix`, пользовательские — из настроек Home Manager. Системные пути macOS и абсолютные пути Nix store необходимы для работы; путей к конкретной копии репозитория в конфигурации нет.
+```sh
+make check
+make switch
+```
 
-## Как работают dotfiles
+**Adding an app:** add its Brew name to `homebrew.nix`, then run the commands above. A config file alone does not install its app.
 
-| Способ установки | Конфиги | Где редактировать |
+**Removing an app:** remove its entry from `homebrew.nix`, then uninstall it. Removing the entry alone leaves the installed app in place. Replace `NAME` with its Brew name:
+
+```sh
+HOMEBREW_NO_AUTOREMOVE=1 brew uninstall NAME        # command-line tool
+HOMEBREW_NO_AUTOREMOVE=1 brew uninstall --cask NAME # Mac app
+```
+
+Choose the matching command. The flag keeps Brew from also removing other unused dependencies.
+
+## Where to edit config files
+
+| Configs | Where to edit | What setup does |
 | --- | --- | --- |
-| Ссылки Home Manager | zsh, Git, clang-format, AeroSpace, Alacritty с темой, k9s с Dracula, Vim | В репозитории, затем `make switch` |
-| Копирование отсутствующих файлов | Neovim, btop, tmux, VS Code | В домашней папке; для переноса на другой Mac скопировать правки обратно в `dotfiles/` |
+| zsh, Git, clang-format, AeroSpace, Alacritty, k9s, Vim | In this repository, then `make switch` | Links files to the Nix-managed version |
+| Neovim, btop, tmux, VS Code | In your home folder | Copies missing files once; keeps existing files |
 
-Существующие обычные файлы на месте управляемых ссылок сохраняются с суффиксом `.before-home-manager`. Если резервная копия уже существует, Home Manager остановится, чтобы не затереть её. Не включать `force` для обхода конфликта без сравнения файлов: это [отключает защиту локальных правок](https://nix-community.github.io/home-manager/usage/dotfiles.html).
+Linked files are read-only. Setup backs up replaced files with `.before-home-manager` and stops if that backup already exists.
 
-Редактируемые копии создаются после установки управляемых ссылок. Существующий файл или ссылка, включая сломанную, не заменяются. Это позволяет btop и Neovim сохранять настройки. Для повторной установки конкретного конфига закрыть приложение, сохранить его копию и освободить только соответствующий путь, затем выполнить `make switch`.
+**For Neovim, btop, tmux, and VS Code, existing files are kept, even if they contain app defaults.** To replace a copied config with this repository's version: close the app, move that specific file to a backup, then run `make switch`. Copy local edits back into `dotfiles/` to carry them to another Mac.
 
-Файлы Neovim подхватываются рекурсивно, кроме `LICENSE`. k9s использует стандартную папку macOS `~/Library/Application Support/k9s/` и сам выбирает папки для своих данных. Стиль clang-format устанавливается в `~/.clang-format` и действует для исходников внутри домашней папки, если ближе к проекту нет собственного стиля; форматтер из Command Line Tools вызывается через `xcrun clang-format`.
+New apps can create configs normally. To include one in this setup, copy its config into `dotfiles/`, add an installation rule in `home/runtime-configs.nix`, and add the new file to Git. Keep caches, history, keys, and app data out of the repository.
 
-Конфиг сам по себе не устанавливает приложение: например, Alacritty сохранён в dotfiles, но отсутствует в списке пакетов.
+## Finish manually
 
-Новая утилита свободно создаёт свои конфиги рядом с управляемыми файлами. Они не попадут в Git автоматически. Чтобы переносить их на другие устройства, сохранить нужные файлы в `dotfiles/` и добавить правила установки в `runtime-configs.nix`. Кэши, историю, ключи и данные приложений туда не копировать.
+Restore account logins, licenses, SSH keys, macOS permissions, NVM Node versions, global npm/Go tools, and VS Code extensions yourself. Colima virtual machines are not copied. Enable Reduce Motion in System Settings if needed.
 
-## Shell и личные данные
+GitHub URLs use SSH after setup, so [set up GitHub SSH access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) before cloning plugins or other repositories.
 
-Home Manager формирует startup-файлы zsh: окружение задаётся отдельно от интерактивных aliases, completion и подсветки. Brew и NVM подключаются с проверкой наличия; `nvm --no-use` оставляет Node из Brew до явного `nvm use`. Для переходов через zoxide доступны `z` и `zi`, обычный `cd` сохранён.
-
-История содержит до 100000 записей в памяти и 50000 на диске. Команды сразу дописываются с timestamps; `SHARE_HISTORY` отключён, поскольку [он несовместим с `INC_APPEND_HISTORY`](https://zsh.sourceforge.io/Doc/Release/Options.html#History). Новые записи других окон можно прочитать через `fc -RI`.
-
-Приватные переменные подключаются из `macbook-nix/private-env.sh` внутри `config.xdg.configHome` — по умолчанию `~/.config`. Файл хранить вне репозитория с правами `600`. Отслеживаемые файлы flake копируются в Nix store, поэтому секреты в Nix-выражения и dotfiles не добавлять.
-
-Git использует личные имя и почту для всех репозиториев, без правил для конкретной папки. GitHub HTTPS URL переписываются в `git@github.com:`, а `git://` — в `ssh://git@`. Для этих адресов нужен настроенный SSH-доступ; ключи восстанавливаются отдельно. Локальные настройки Git могут иметь приоритет: проверить через `git config --show-origin --get user.email`.
-
-## Что восстанавливается отдельно
-
-Входы в аккаунты, лицензии, SSH-ключи, разрешения macOS, версии Node в NVM, глобальные npm/Go-инструменты, расширения VS Code и данные приложений не входят в эту конфигурацию. Colima устанавливается без собственного конфига и без переноса виртуальных машин. Reduce Motion при необходимости включить в System Settings → Accessibility → Motion.
-
-Плагины Vim устанавливаются через Vundle:
+For **Vim plugins**, install [Vundle](https://github.com/VundleVim/Vundle.vim#quick-start):
 
 ```sh
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 vim +PluginInstall +qall
 ```
 
-Если Vundle уже установлен, достаточно второй команды. Без плагинов тема Embark недоступна.
-
-Плагины tmux устанавливаются через TPM:
+For **tmux plugins**, install [TPM](https://github.com/tmux-plugins/tpm#installation):
 
 ```sh
 git clone https://github.com/tmux-plugins/tpm.git ~/.tmux/plugins/tpm
-~/.tmux/plugins/tpm/bin/install_plugins
 ```
 
-Если TPM уже установлен, достаточно второй команды. После установки перечитать конфиг через `tmux source-file ~/.tmux.conf`. Плагин темы теперь называется PowerKit; в конфиге явно выбрана Tokyo Night, чтобы не зависеть от его стандартной темы.
+Start tmux, then press **Ctrl+A**, release both keys, and press **Shift+I** to install plugins. If tmux was already running, first run `tmux source-file ~/.tmux.conf`. These keys assume the tmux config from this repository is installed. Skip a clone command if its destination already exists.
 
-## Обновление, конфликты и откат
+Private shell variables go in `~/.config/macbook-nix/private-env.sh` (or the same relative path under a custom config folder). Set its permissions with `chmod 600` and keep it outside Git. Files tracked here are copied into the Nix store; do not put secrets in them.
 
-Зависимости Nix зафиксированы в `flake.lock` и разделяют один nixpkgs через `follows`; Home Manager использует системный `pkgs`. Это соответствует [официальной схеме интеграции](https://nix-community.github.io/home-manager/nix-flakes/nix-darwin.html). Для обновления выполнить `make update`, просмотреть дифф lock-файла, проверить и применить конфигурацию. `system.stateVersion` и `home.stateVersion` задают совместимость, при обычном обновлении их оставляют прежними.
+## Updates and problems
 
-Brew-программы и плагины Vim/tmux не фиксируются lock-файлом Nix. Автообновление, общий upgrade и удаление сторонних пакетов при активации отключены. Обычное связывание пакетов, включая keg-only, оставлено Homebrew. Обновление выполняется явно, например `brew upgrade tmux`; установка новой программы может также изменить её зависимости.
+- **Update Nix dependencies:** run `make update`, review `git diff flake.lock`, then `make check` and `make switch`. Leave `system.stateVersion` and `home.stateVersion` unchanged during normal updates.
+- **Update a Brew app:** run `brew upgrade NAME`. Brew apps and editor plugins are not pinned by `flake.lock`; setup does not run a general upgrade or remove unrelated apps.
+- **An app download failed:** fix the connection or download issue, run `make apps`, then `make switch`. Some settings may already have been applied.
+- **A `.before-home-manager` backup blocks setup:** compare it with the current file and keep the version you need before retrying. Do not overwrite backups blindly.
+- **`Unexpected files in /etc`:** compare the listed files and back up anything important before following nix-darwin's instructions. Do not delete system files blindly.
+- **You see `_nixbld` users or a `nixbld` group:** these are normal Nix build accounts.
 
-Удаление записи из Nix прекращает установку пакета, но не удаляет установленную копию. Для удаления использовать `HOMEBREW_NO_AUTOREMOVE=1 brew uninstall имя` или `HOMEBREW_NO_AUTOREMOVE=1 brew uninstall --cask имя`, чтобы не удалять заодно другие неиспользуемые зависимости.
-
-Системный `zshrc` остаётся macOS. При переходе со старой версии его ссылка на прежний файл Nix заменяется обычным файлом с тем же содержимым. Обёртка активации автоматически сохраняет только точную стандартную правку `bashrc` установщиком Nix при наличии совпадающей исходной копии; остальные конфликты оставляет проверкам nix-darwin. Для предварительного просмотра этой подготовки:
-
-```sh
-make build
-/usr/bin/python3 scripts/switch.py
-```
-
-Это не полный просмотр системных изменений. При `Unexpected files in /etc` сравнить перечисленные файлы и сохранить нужные версии перед повторной активацией. При ошибке `.before-home-manager` сначала сравнить существующую резервную копию и текущий файл.
-
-Служебные пользователи `_nixbld*` и группа `nixbld` нужны для изолированных сборок multi-user Nix. Они не являются профилями настройки Mac.
-
-Посмотреть поколения и откатить системную конфигурацию:
+To return to the previous Nix system version:
 
 ```sh
-/run/current-system/sw/bin/darwin-rebuild --list-generations
 sudo /run/current-system/sw/bin/darwin-rebuild switch --rollback
 ```
 
-Откат возвращает поколение Nix. Программы Brew, редактируемые копии конфигов и данные приложений он не восстанавливает; удалённые настройки macOS также не обязательно возвращаются к прежним значениям.
-
-Для дальнейших изменений: [рекомендации nix.dev](https://nix.dev/guides/best-practices.html), [модули Nix](https://nix.dev/tutorials/module-system/deep-dive.html), [параметры nix-darwin](https://nix-darwin.github.io/nix-darwin/manual/).
+Rollback does not restore Brew apps, editable config copies, or app data. It may also leave macOS settings that the previous version did not manage.
