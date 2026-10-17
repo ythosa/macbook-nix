@@ -66,7 +66,7 @@
       # Databases
       "libpq"
       "pgcli"
-      "postgresql@14"
+      "postgresql@18"
       "redis"
       # Kubernetes
       "helm"

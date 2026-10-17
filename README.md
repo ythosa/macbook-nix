@@ -93,6 +93,7 @@ Private shell variables go in `~/.config/macbook-nix/private-env.sh` (or the sam
 ## Updates and problems
 
 - **Update Nix dependencies:** run `make update`, review `git diff flake.lock`, then `make check` and `make switch`. Leave `system.stateVersion` and `home.stateVersion` unchanged during normal updates.
+- **PostgreSQL:** setup installs [version 18](https://formulae.brew.sh/formula/postgresql@18) for new Macs. Existing PostgreSQL 14 data and services are kept; database migration is separate.
 - **Update a Brew app:** run `brew upgrade NAME`. Brew apps and editor plugins are not pinned by `flake.lock`; setup does not run a general upgrade or remove unrelated apps.
 - **An app download failed:** fix the connection or download issue, run `make apps`, then `make switch`. Some settings may already have been applied.
 - **`Unexpected files in /etc`:** compare the listed files and back up anything important before following nix-darwin's instructions. Do not delete system files blindly.

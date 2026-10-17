@@ -10,6 +10,7 @@ let
   preferredPaths = map (name: "${brew}/opt/${name}/bin") [
     "curl"
     "libpq"
+    "postgresql@18"
     "openjdk@17"
   ];
   brewInit = ''
