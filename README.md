@@ -45,6 +45,7 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | What to change | Where to edit |
 | --- | --- |
 | Apps and fonts | [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix) |
+| Python SQL formatter (Nix package) | [home/default.nix](home/default.nix) |
 | Dock, Finder, trackpad, timezone, firewall | [modules/darwin/macos.nix](modules/darwin/macos.nix) |
 | Shell, shortcuts, PATH, Node version manager | [home/shell.nix](home/shell.nix) |
 | Git name, email, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
@@ -84,9 +85,11 @@ New apps can create configs normally. To include one in this setup, copy its con
 
 ## Finish manually
 
-Restore account logins, licenses, SSH keys, macOS permissions, NVM Node versions, global npm/Go tools, and VS Code extensions yourself. Colima virtual machines are not copied. Enable Reduce Motion in System Settings if needed.
+Restore account logins, licenses, SSH keys, macOS permissions, NVM Node versions, additional npm/Go tools, and VS Code extensions yourself. Colima virtual machines are not copied. Enable Reduce Motion in System Settings if needed.
 
 Public editor plugins are installed over HTTPS without an SSH key. Your normal GitHub URLs still use SSH after setup, so [set up GitHub SSH access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) for your repositories. GDB needs a code-signing certificate before it can debug macOS processes.
+
+Kotlin's optional language server is enabled only if `kotlin-lsp` is installed.
 
 Private shell variables go in `~/.config/macbook-nix/private-env.sh` (or the same relative path under a custom config folder). Set its permissions with `chmod 600` and keep it outside Git. Files tracked here are copied into the Nix store; do not put secrets in them.
 

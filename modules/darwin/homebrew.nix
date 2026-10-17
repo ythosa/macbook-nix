@@ -3,6 +3,7 @@
     enable = true;
     taps = [
       "dumkin/tap"
+      "incu6us/tap"
       "nikitabobko/tap"
     ];
     enableZshIntegration = false; # Home Manager initializes the user's shell.
@@ -84,10 +85,14 @@
       "lima-additional-guestagents"
       "qemu"
       # Languages
+      "black"
       "dotnet"
       "eslint"
+      "eslint_d"
       "go"
+      "incu6us/tap/goimports-reviser"
       "lua"
+      "lua-language-server"
       "luarocks"
       "maven"
       "node"
@@ -98,6 +103,7 @@
       "prettier"
       "rocq"
       "ruff"
+      "stylua"
       "typescript"
       "virtualenv"
     ];

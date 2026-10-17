@@ -22,7 +22,7 @@ class PluginSetupTests(unittest.TestCase):
         self.user = self.root / 'account'
         self.user.mkdir()
         self.env = dict(os.environ, PATH=str(self.commands) + ':' + os.environ['PATH'],
-                        PLUGIN_TEST_LOG=str(self.log))
+                        PLUGIN_TEST_LOG=str(self.log), NVIM_LOG_FILE=str(self.root / 'nvim.log'))
 
     def command(self, name, body):
         path = self.commands / name
@@ -37,7 +37,7 @@ class PluginSetupTests(unittest.TestCase):
 
     def git_mock(self, failure=False):
         self.command('git', 'printf "%s\\n" "$*" >> "$PLUGIN_TEST_LOG"\n' +
-                     ('exit 7' if failure else
+                     ('destination="${@: -1}"\nmkdir -p "$destination"\necho partial > "$destination/incomplete"\nexit 7' if failure else
                       'destination="${@: -1}"\nmkdir -p "$destination/.git"'))
 
     def test_missing_checkout_is_cloned(self):
@@ -72,6 +72,9 @@ class PluginSetupTests(unittest.TestCase):
         self.git_mock(failure=True)
         result = self.run_function('clone_missing', 'https://github.com/example/plugin.git', self.user / 'plugin')
         self.assertEqual(result.returncode, 7)
+        self.assertEqual(len(self.log.read_text().splitlines()), 3)
+        self.assertFalse((self.user / 'plugin').exists())
+        self.assertEqual(list(self.user.glob('.macbook-nix-plugin.*')), [])
 
     def test_vim_installs_without_update_and_checks_startup(self):
         self.git_mock()
@@ -116,13 +119,18 @@ class PluginSetupTests(unittest.TestCase):
         self.assertIn('CONFIG=' + str(config), log)
         self.assertIn('DATA=' + str(data), log)
         self.assertIn('has_errors()', log)
-        self.assertIn('.install({wait=true,show=false,clear=false})', log)
+        self.assertIn('.install({wait=true,show=false,clear=false,lockfile=true})', log)
         self.assertNotIn('.sync(', log)
 
     def test_public_git_overrides_are_local_and_home_is_unchanged(self):
         # Replace setup stages with assertions, so no tools or home files run.
         program = '''source "$1"
-install_vim_plugins() { printf '%s\\n' "$GIT_CONFIG_GLOBAL|$GIT_CONFIG_NOSYSTEM|$GIT_TERMINAL_PROMPT|$HOME"; }
+install_vim_plugins() {
+  [[ ":$PATH:" == *":/etc/profiles/per-user/$(id -un)/bin:"* ]]
+  [[ ":$PATH:" == *":$1/go/bin:"* ]]
+  [[ ":$PATH:" == *":$1/.local/bin:"* ]]
+  printf '%s\\n' "$GIT_CONFIG_GLOBAL|$GIT_CONFIG_NOSYSTEM|$GIT_TERMINAL_PROMPT|$HOME"
+}
 install_tmux_plugins() { :; }
 install_nvim_plugins() { :; }
 setup_plugins "$2"

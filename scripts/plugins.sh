@@ -2,8 +2,8 @@
 # Install missing editor plugins without changing existing repositories.
 set -euo pipefail
 
-clone_missing() {
-  local repository=$1 destination=$2
+clone_missing() (
+  local repository=$1 destination=$2 attempt clone_status=1
   if [[ -e "$destination" || -L "$destination" ]]; then
     if [[ ! -d "$destination/.git" && ! -f "$destination/.git" ]]; then
       echo "Plugin path exists but is not a Git checkout: $destination" >&2
@@ -12,8 +12,29 @@ clone_missing() {
     return
   fi
   mkdir -p "$(dirname "$destination")"
-  git clone --filter=blob:none "$repository" "$destination"
-}
+  plugin_clone_dir=$(mktemp -d "$(dirname "$destination")/.macbook-nix-plugin.XXXXXX")
+  trap 'rm -rf "$plugin_clone_dir"' EXIT
+  for attempt in 1 2 3; do
+    if git clone --filter=blob:none "$repository" "$plugin_clone_dir/checkout"; then
+      if [[ -e "$destination" || -L "$destination" ]]; then
+        echo "Plugin path appeared during download: $destination" >&2
+        return 1
+      fi
+      # Rename atomically; never merge a download into an existing checkout.
+      /usr/bin/python3 -c 'import os, sys; os.rename(sys.argv[1], sys.argv[2])' \
+        "$plugin_clone_dir/checkout" "$destination"
+      return
+    else
+      clone_status=$?
+      rm -rf "$plugin_clone_dir/checkout"
+      if [[ $attempt != 3 ]]; then
+        echo "Plugin download failed; retrying ($attempt/3): $repository" >&2
+        sleep 1
+      fi
+    fi
+  done
+  return "$clone_status"
+)
 
 install_vim_plugins() {
   local user_home=$1
@@ -22,7 +43,7 @@ install_vim_plugins() {
   # status: Vundle's interactive PluginInstall command does not fail on errors.
   MACBOOK_NIX_VIMRC="$user_home/.vimrc" \
   MACBOOK_NIX_VUNDLE="$user_home/.vim/bundle/Vundle.vim" \
-  vim -Nu NONE -i NONE -n -es <<'VIM'
+  vim -Nu NONE -i NONE -n -es -S /dev/stdin <<'VIM'
 set nomore
 execute 'set runtimepath^=' . fnameescape($MACBOOK_NIX_VUNDLE)
 execute 'silent! source ' . fnameescape($MACBOOK_NIX_VIMRC)
@@ -56,16 +77,17 @@ install_nvim_plugins() {
   local config_home=$1 data_home=$2
   XDG_CONFIG_HOME="$config_home" XDG_DATA_HOME="$data_home" \
     nvim --headless -u "$config_home/nvim/init.lua" \
-    -c 'lua local ok, err = pcall(function() require("lazy").install({wait=true,show=false,clear=false}); assert(vim.v.errmsg == "" and not require("lazy.manage.checker").has_errors(), "Neovim plugin installation failed: " .. vim.v.errmsg) end); if not ok then vim.api.nvim_err_writeln(tostring(err)); vim.cmd("cquit 1") end' \
+    -c 'lua local ok, err = pcall(function() require("lazy").install({wait=true,show=false,clear=false,lockfile=true}); assert(vim.v.errmsg == "" and not require("lazy.manage.checker").has_errors(), "Neovim plugin installation failed: " .. vim.v.errmsg) end); if not ok then vim.api.nvim_err_writeln(tostring(err)); vim.cmd("cquit 1") end' \
     -c qall
 }
 
 setup_plugins() (
-  local user_home=$1
+  local user_home=$1 plugin_username
+  plugin_username=$(id -un)
   # Public plugins must work before the user restores their GitHub SSH keys.
   # These process-local settings leave the user's Git configuration untouched.
   export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0
-  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/etc/profiles/per-user/$plugin_username/bin:${GOBIN:-$user_home/go/bin}:$user_home/.local/bin:$PATH"
   install_vim_plugins "$user_home"
   install_tmux_plugins "$user_home"
   install_nvim_plugins "${XDG_CONFIG_HOME:-$user_home/.config}" "${XDG_DATA_HOME:-$user_home/.local/share}"
