@@ -42,8 +42,8 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              # Never replace an existing backup during activation.
-              backupFileExtension = "before-home-manager";
+              # Source it so a failed backup stops activation before replacement.
+              backupCommand = "source ${./scripts/backup-config.sh}";
               users.${username} = ./home;
             };
           }

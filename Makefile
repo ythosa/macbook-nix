@@ -1,4 +1,4 @@
-.PHONY: setup check build switch apps apps-check brewfile fmt update
+.PHONY: setup check build switch apps apps-check plugins brewfile fmt update
 .DEFAULT_GOAL := check
 
 NIX := nix --extra-experimental-features 'nix-command flakes'
@@ -6,7 +6,8 @@ NIX_FLAGS := --impure --no-update-lock-file
 CONFIG := .\#darwinConfigurations.macbook
 export MACBOOK_NIX_USERNAME := $(shell /usr/bin/id -un)
 
-setup: switch
+setup:
+	/bin/bash setup.sh
 
 check:
 	/usr/bin/python3 -m unittest discover -s tests -p 'test_*.py'
@@ -29,6 +30,9 @@ apps: brewfile
 
 apps-check: brewfile
 	HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --no-upgrade --verbose --file=Brewfile
+
+plugins:
+	/bin/bash scripts/plugins.sh
 
 fmt:
 	rg --files -g '*.nix' -0 | xargs -0 $(NIX) fmt $(NIX_FLAGS) --

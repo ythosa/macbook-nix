@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  osConfig,
   ...
 }:
 let
@@ -33,6 +34,8 @@ let
 in
 {
   home.file = {
+    ".docker/cli-plugins/docker-compose".source =
+      config.lib.file.mkOutOfStoreSymlink "${osConfig.homebrew.prefix}/opt/docker-compose/bin/docker-compose";
     ".clang-format".source = ../dotfiles/.clang-format;
     ".vimrc".source = ../dotfiles/.vimrc;
     "Library/Application Support/k9s" = {
