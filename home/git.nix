@@ -3,6 +3,7 @@
     enable = true;
     package = null;
     settings = {
+      core.editor = "vim";
       user = {
         name = "ythosa";
         email = "10869361+ythosa@users.noreply.github.com";

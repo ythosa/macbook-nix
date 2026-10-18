@@ -22,6 +22,8 @@ in
 {
   home = {
     sessionVariables = {
+      EDITOR = "vim";
+      VISUAL = "vim";
       NVM_DIR = "${config.home.homeDirectory}/.nvm";
       JAVA_HOME = "${brew}/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home";
       PLANTUML_JAR = "${brew}/opt/plantuml/libexec/plantuml.jar";

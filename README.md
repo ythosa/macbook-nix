@@ -52,7 +52,7 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | Alacritty and Python SQL formatter (Nix packages) | [home/default.nix](home/default.nix) |
 | Dock, Finder, trackpad, timezone, firewall | [modules/darwin/macos.nix](modules/darwin/macos.nix) |
 | Shell, shortcuts, PATH, Node version manager | [home/shell.nix](home/shell.nix) |
-| Git name, email, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
+| Git name, email, editor, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
 | App config files | [.config/](.config/) and the rules below |
 | Neovim config | Your Git checkout at `~/.config/nvim` ([ythosa/nvim-config](https://github.com/ythosa/nvim-config)) |
 | Rules for installing config files | [home/runtime-configs.nix](home/runtime-configs.nix) |
