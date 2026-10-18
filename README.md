@@ -23,7 +23,7 @@ GitHub authentication and the initial clone are manual prerequisites. If macOS a
 
 Setup installs missing Command Line Tools, [Homebrew](https://docs.brew.sh/Installation), and [upstream Nix](https://nixos.org/download/), applies the configuration, and installs Vim, tmux, and Neovim plugins. Existing tools and plugin repositories are kept. `/bin/bash setup.sh` also works before `make` is available.
 
-Enter your password when asked. Command Line Tools normally install automatically. If Apple's installer dialog opens, finish it; setup waits. When setup finishes, open a new Terminal window.
+Enter your password when asked. During Nix installation, allow Terminal to administer your computer if macOS asks. Command Line Tools install automatically with retries; if Apple's installer dialog opens, finish it. Setup waits for these dialogs. When it finishes, open a new Terminal window.
 
 No username or folder paths need editing. The saved preferences include Moscow time, dark mode, and the application firewall turned off; see [Change the setup](#change-the-setup) to customize them.
 
