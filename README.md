@@ -88,7 +88,7 @@ Linked files are read-only. Setup moves replaced files into unique adjacent back
 
 New apps can create configs normally. To include one in this setup, copy its config into `.config/APP/`, add an installation rule in `home/runtime-configs.nix`, and add the new file to Git. Keep caches, history, keys, and app data out of the repository.
 
-Neovim is fetched automatically from its own repository as a Nix source input. No Git submodule commands are needed. To update only its starter files, run `nix --extra-experimental-features 'nix-command flakes' flake update nvim-config`, review `flake.lock`, then run `make check` and `make switch`. Existing editable Neovim files are kept; the new source version is used for missing files and new Macs. A small [compatibility patch](home/nvim-compat.patch) preserves the fresh-Mac fixes until they are included upstream.
+Neovim config changes are maintained in its separate repository. Nix fetches that repository directly as a source input. No Git submodule commands are needed. To update only its starter files, run `nix --extra-experimental-features 'nix-command flakes' flake update nvim-config`, review `flake.lock`, then run `make check` and `make switch`. Existing editable Neovim files are kept; the new source version is used for missing files and new Macs.
 
 ## Finish manually
 

@@ -3,15 +3,9 @@
   lib,
   nvim-config,
   osConfig,
-  pkgs,
   ...
 }:
 let
-  nvimSource = pkgs.applyPatches {
-    name = "nvim-config";
-    src = nvim-config;
-    patches = [ ./nvim-compat.patch ];
-  };
   seeded = [
     {
       source = ../.config/btop/btop.conf;
@@ -34,7 +28,7 @@ let
           relative = lib.removePrefix "${nvim-config}/" (toString source);
         in
         {
-          source = "${nvimSource}/${relative}";
+          inherit source;
           destination = "${config.xdg.configHome}/nvim/${relative}";
         }
       )
