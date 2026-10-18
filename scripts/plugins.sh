@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install missing editor plugins without changing existing repositories.
+# Set up the editable Neovim checkout and missing editor plugins.
 set -euo pipefail
 
 clone_missing() (
@@ -34,6 +34,55 @@ clone_missing() (
     fi
   done
   return "$clone_status"
+)
+
+ensure_nvim_config() (
+  local destination="$1/nvim" checkout_root origin
+  if [[ -L "$destination" || ( -e "$destination" && ! -d "$destination" ) ]]; then
+    echo "Neovim config path must be a regular directory: $destination" >&2
+    return 1
+  fi
+
+  if [[ -e "$destination/.git" || -L "$destination/.git" ]]; then
+    if ! checkout_root=$(git -C "$destination" rev-parse --show-toplevel) || \
+      [[ "$checkout_root" != "$(cd "$destination" && pwd -P)" ]]; then
+      echo "Neovim config is not a valid Git checkout: $destination" >&2
+      return 1
+    fi
+
+    origin=$(git -C "$destination" config --local --get remote.origin.url) || origin=
+    case "$origin" in
+      https://github.com/ythosa/nvim-config|https://github.com/ythosa/nvim-config.git|\
+      git@github.com:ythosa/nvim-config|git@github.com:ythosa/nvim-config.git|\
+      ssh://git@github.com/ythosa/nvim-config|ssh://git@github.com/ythosa/nvim-config.git)
+        return ;;
+      *)
+        echo "Neovim config has an unexpected origin: $destination ($origin)" >&2
+        return 1 ;;
+    esac
+  fi
+
+  mkdir -p "$1"
+  nvim_clone_dir=$(mktemp -d "$1/.macbook-nix-nvim.XXXXXX")
+  trap 'rm -rf "$nvim_clone_dir"' EXIT
+  clone_missing https://github.com/ythosa/nvim-config.git "$nvim_clone_dir/checkout"
+  git -C "$nvim_clone_dir/checkout" config remote.origin.pushurl git@github.com:ythosa/nvim-config.git
+
+  if [[ -d "$destination" && ! -L "$destination" ]]; then
+    if [[ -e "$destination/.git" || -L "$destination/.git" ]]; then
+      echo "Neovim Git metadata appeared during download: $destination" >&2
+      return 1
+    fi
+    # Adopt existing files without copying, restoring, or replacing any of them.
+    /usr/bin/python3 -c 'import os, sys; os.rename(sys.argv[1], sys.argv[2])' \
+      "$nvim_clone_dir/checkout/.git" "$destination/.git"
+  elif [[ -e "$destination" || -L "$destination" ]]; then
+    echo "Neovim config path changed during download: $destination" >&2
+    return 1
+  else
+    /usr/bin/python3 -c 'import os, sys; os.rename(sys.argv[1], sys.argv[2])' \
+      "$nvim_clone_dir/checkout" "$destination"
+  fi
 )
 
 install_vim_plugins() {
@@ -82,15 +131,17 @@ install_nvim_plugins() {
 }
 
 setup_plugins() (
-  local user_home=$1 plugin_username
+  local user_home=$1 plugin_username config_home
   plugin_username=$(id -un)
-  # Public plugins must work before the user restores their GitHub SSH keys.
+  config_home=${XDG_CONFIG_HOME:-$user_home/.config}
+  # Public configs and plugins must work before GitHub SSH keys are restored.
   # These process-local settings leave the user's Git configuration untouched.
   export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0
   export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/etc/profiles/per-user/$plugin_username/bin:${GOBIN:-$user_home/go/bin}:$user_home/.local/bin:$PATH"
+  ensure_nvim_config "$config_home"
   install_vim_plugins "$user_home"
   install_tmux_plugins "$user_home"
-  install_nvim_plugins "${XDG_CONFIG_HOME:-$user_home/.config}" "${XDG_DATA_HOME:-$user_home/.local/share}"
+  install_nvim_plugins "$config_home" "${XDG_DATA_HOME:-$user_home/.local/share}"
 )
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

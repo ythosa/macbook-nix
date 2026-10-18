@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  nvim-config,
   osConfig,
   ...
 }:
@@ -19,29 +18,7 @@ let
       source = ../.config/vscode/settings.json;
       destination = "${config.home.homeDirectory}/Library/Application Support/Code/User/settings.json";
     }
-  ]
-  ++
-    map
-      (
-        source:
-        let
-          relative = lib.removePrefix "${nvim-config}/" (toString source);
-        in
-        {
-          inherit source;
-          destination = "${config.xdg.configHome}/nvim/${relative}";
-        }
-      )
-      (
-        builtins.filter (
-          source:
-          !(builtins.elem (builtins.baseNameOf source) [
-            "LICENSE"
-            "README.md"
-            ".vimrc"
-          ])
-        ) (lib.filesystem.listFilesRecursive nvim-config.outPath)
-      );
+  ];
   seed =
     { source, destination }:
     ''

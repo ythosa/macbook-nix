@@ -60,24 +60,7 @@
       "inputs": {
         "darwin": "darwin",
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs",
-        "nvim-config": "nvim-config"
-      }
-    },
-    "nvim-config": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1792325638,
-        "narHash": "sha256-65pVMNbVTWPw0JTYu+PrbJZOfqRWv+GGRt3SPCV2/Nw=",
-        "owner": "ythosa",
-        "repo": "nvim-config",
-        "rev": "bbd8a81ca0ced675f1467874aa6f18d9c6eeabab",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ythosa",
-        "repo": "nvim-config",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

@@ -21,7 +21,7 @@ From the repository folder, run this one setup command as your normal macOS user
 
 GitHub authentication and the initial clone are manual prerequisites. If macOS asks to install Command Line Tools while cloning, finish Apple's installer, then repeat `git clone`.
 
-Setup installs missing Command Line Tools, [Homebrew](https://docs.brew.sh/Installation), and [upstream Nix](https://nixos.org/download/), applies the configuration, and installs Vim, tmux, and Neovim plugins. Existing tools and plugin repositories are kept. `/bin/bash setup.sh` also works before `make` is available.
+Setup installs missing Command Line Tools, [Homebrew](https://docs.brew.sh/Installation), and [upstream Nix](https://nixos.org/download/), applies the configuration, clones the editable Neovim config, and installs Vim, tmux, and Neovim plugins. Existing tools and plugin repositories are kept. `/bin/bash setup.sh` also works before `make` is available.
 
 Enter your password when asked. During Nix installation, allow Terminal to administer your computer if macOS asks. Command Line Tools install automatically with retries; if Apple's installer dialog opens, finish it. Setup waits for these dialogs. When it finishes, open a new Terminal window.
 
@@ -36,13 +36,13 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | `make` / `make check` | Run safety tests and validate the configuration |
 | `make build` | Build without applying changes; output is linked at `result` |
 | `make setup` | Install missing tools, apply everything, and install editor plugins |
-| `make switch` | Build and apply settings, config files, and Brew apps |
+| `make switch` | Build and apply settings, managed configs, and Brew apps; leaves Neovim alone |
 | `make apps` | Install missing Brew apps without changing system settings |
 | `make apps-check` | Check whether Brew apps are installed |
-| `make plugins` | Install missing Vim, tmux, and Neovim plugins |
+| `make plugins` | Clone Neovim config if needed and install missing editor plugins |
 | `make brewfile` | Generate a local `Brewfile` from the app list |
 | `make fmt` | Format Nix files; requires `rg` from ripgrep |
-| `make update` | Update Nix dependencies and the Neovim source version in `flake.lock` |
+| `make update` | Update Nix dependencies in `flake.lock` |
 
 ## Change the setup
 
@@ -54,7 +54,7 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | Shell, shortcuts, PATH, Node version manager | [home/shell.nix](home/shell.nix) |
 | Git name, email, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
 | App config files | [.config/](.config/) and the rules below |
-| Neovim config | [ythosa/nvim-config](https://github.com/ythosa/nvim-config), pinned in `flake.lock` |
+| Neovim config | Your Git checkout at `~/.config/nvim` ([ythosa/nvim-config](https://github.com/ythosa/nvim-config)) |
 | Rules for installing config files | [home/runtime-configs.nix](home/runtime-configs.nix) |
 
 Add new files to Git with `git add path/to/file` so Nix can see them. Then apply your changes:
@@ -80,15 +80,27 @@ Choose the matching command. The flag keeps Brew from also removing other unused
 | Configs | Where to edit | What setup does |
 | --- | --- | --- |
 | zsh, Git, clang-format, AeroSpace, Alacritty, k9s, Vim | In this repository, then `make switch` | Links files to the Nix-managed version |
-| Neovim, btop, tmux, VS Code | In your home folder | Copies missing files once; keeps existing files |
+| btop, tmux, VS Code | In your home folder | Copies missing files once; keeps existing files |
+| Neovim | Directly in `~/.config/nvim`, then commit and push there | Keeps a normal editable Git checkout |
 
 Linked files are read-only. Setup moves replaced files into unique adjacent backup folders such as `.zshrc.before-home-manager.ABC123/`. Previous backups are kept. If a backup cannot be made, setup stops before replacing that file.
 
-**For Neovim, btop, tmux, and VS Code, existing files are kept, even if they contain app defaults.** To replace a copied config with this repository's version: close the app, move that specific file to a backup, then run `make switch`. Copy local edits back into `.config/` to carry them to another Mac; Neovim changes belong in its separate repository.
+**For btop, tmux, and VS Code, existing files are kept, even if they contain app defaults.** To replace a copied config with this repository's version: close the app, move that specific file to a backup, then run `make switch`. Copy local edits back into `.config/` to carry them to another Mac.
 
 New apps can create configs normally. To include one in this setup, copy its config into `.config/APP/`, add an installation rule in `home/runtime-configs.nix`, and add the new file to Git. Keep caches, history, keys, and app data out of the repository.
 
-Neovim config changes are maintained in its separate repository. Nix fetches that repository directly as a source input. No Git submodule commands are needed. To update only its starter files, run `nix --extra-experimental-features 'nix-command flakes' flake update nvim-config`, review `flake.lock`, then run `make check` and `make switch`. Existing editable Neovim files are kept; the new source version is used for missing files and new Macs.
+`make setup` and `make plugins` clone Neovim config into `~/.config/nvim`, or `$XDG_CONFIG_HOME/nvim` when set. An existing plain config folder receives only `.git`: its files, edits, and deletions are preserved. Existing clones keep their branch and remotes. Repeated setup does not pull or reset local changes; normal plugin installation can update `lazy-lock.json`. `make switch` does not manage Neovim.
+
+Edit, commit, and push directly in that checkout. Replace `path/to/file` with the file you changed:
+
+```sh
+cd "${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
+git add path/to/file
+git commit -m "Update Neovim config"
+git push
+```
+
+Update manually with `git pull --ff-only` in the same folder. Initial cloning uses HTTPS; new or adopted checkouts store an HTTPS fetch URL and an SSH push URL. Use your normal GitHub SSH authentication for pushes.
 
 ## Finish manually
 
@@ -116,7 +128,7 @@ To return to the previous Nix system version:
 sudo /run/current-system/sw/bin/darwin-rebuild switch --rollback
 ```
 
-Rollback does not restore Brew apps, editable config copies, or app data. It may also leave macOS settings that the previous version did not manage.
+Rollback does not restore Brew apps, editable configs, Git checkouts, or app data. It may also leave macOS settings that the previous version did not manage.
 
 ## Verification
 

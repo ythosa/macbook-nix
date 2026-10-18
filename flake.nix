@@ -7,10 +7,6 @@
     darwin.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    nvim-config = {
-      url = "github:ythosa/nvim-config";
-      flake = false;
-    };
   };
 
   outputs =
@@ -18,7 +14,6 @@
       self,
       darwin,
       home-manager,
-      nvim-config,
       ...
     }:
     let
@@ -47,7 +42,6 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              extraSpecialArgs = { inherit nvim-config; };
               # Source it so a failed backup stops activation before replacement.
               backupCommand = "source ${./scripts/backup-config.sh}";
               users.${username} = ./home;
