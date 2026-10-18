@@ -105,7 +105,7 @@ Private shell variables go in `~/.config/macbook-nix/private-env.sh` (or the sam
 - **Update Nix dependencies:** run `make update`, review `git diff flake.lock`, then `make check` and `make switch`. Leave `system.stateVersion` and `home.stateVersion` unchanged during normal updates.
 - **PostgreSQL:** setup installs [version 18](https://formulae.brew.sh/formula/postgresql@18) for new Macs. Existing PostgreSQL 14 data and services are kept; database migration is separate.
 - **Update a Brew app:** run `brew upgrade NAME`. Brew apps and editor plugins are not pinned by `flake.lock`; setup does not run a general upgrade or remove unrelated apps.
-- **An app download failed:** fix the connection or download issue, run `make apps`, then `make switch`. Some settings may already have been applied.
+- **An app download failed:** fix the connection and rerun `make setup`. It keeps installed apps and continues with the remaining setup steps. Some settings may already have been applied.
 - **`Unexpected files in /etc`:** compare the listed files and back up anything important before following nix-darwin's instructions. Do not delete system files blindly.
 - **You see `_nixbld` users or a `nixbld` group:** these are normal Nix build accounts.
 - **An existing Determinate or custom Nix installation:** migrate it separately; setup will not replace another Nix daemon or erase unknown system configuration.
@@ -117,3 +117,9 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --rollback
 ```
 
 Rollback does not restore Brew apps, editable config copies, or app data. It may also leave macOS settings that the previous version did not manage.
+
+## Verification
+
+An earlier revision was tested on 2026-10-18 in an Apple Silicon VM running macOS 26.6.2, initially without Command Line Tools, Homebrew, or Nix. Full setup, repeated setup, and checks after a power cycle passed: all Brew dependencies, Nix daemon, shell, personal config contents, and editor plugins.
+
+This was a resumed installation: interrupted downloads required retries. The VM image's stricter Gatekeeper policy was restored to the standard App Store and known developers mode, and Codex completions were reinstalled after that correction. Gatekeeper remained enabled. GitHub authentication, the initial clone, and macOS permission prompts were not automated.
