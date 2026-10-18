@@ -1,7 +1,7 @@
 # MacBook setup
 
 Apps, macOS settings, and personal config files for **Apple Silicon Macs**.
-Nix manages the system and config files; Homebrew installs apps. Your macOS username is detected automatically.
+Nix manages settings, config files, Alacritty, and the Python SQL formatter; Homebrew installs the other apps. Your macOS username is detected automatically.
 
 ## Set up a Mac
 
@@ -49,7 +49,7 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | What to change | Where to edit |
 | --- | --- |
 | Apps and fonts | [modules/darwin/homebrew.nix](modules/darwin/homebrew.nix) |
-| Python SQL formatter (Nix package) | [home/default.nix](home/default.nix) |
+| Alacritty and Python SQL formatter (Nix packages) | [home/default.nix](home/default.nix) |
 | Dock, Finder, trackpad, timezone, firewall | [modules/darwin/macos.nix](modules/darwin/macos.nix) |
 | Shell, shortcuts, PATH, Node version manager | [home/shell.nix](home/shell.nix) |
 | Git name, email, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
