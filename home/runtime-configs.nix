@@ -1,30 +1,55 @@
 {
   config,
   lib,
+  nvim-config,
   osConfig,
+  pkgs,
   ...
 }:
 let
+  nvimSource = pkgs.applyPatches {
+    name = "nvim-config";
+    src = nvim-config;
+    patches = [ ./nvim-compat.patch ];
+  };
   seeded = [
-    ".config/btop/btop.conf"
-    ".tmux.conf"
-    "Library/Application Support/Code/User/settings.json"
+    {
+      source = ../.config/btop/btop.conf;
+      destination = "${config.xdg.configHome}/btop/btop.conf";
+    }
+    {
+      source = ../.config/tmux/tmux.conf;
+      destination = "${config.home.homeDirectory}/.tmux.conf";
+    }
+    {
+      source = ../.config/vscode/settings.json;
+      destination = "${config.home.homeDirectory}/Library/Application Support/Code/User/settings.json";
+    }
   ]
-  ++ map (path: lib.removePrefix "${toString ../dotfiles}/" (toString path)) (
-    builtins.filter (path: builtins.baseNameOf path != "LICENSE") (
-      lib.filesystem.listFilesRecursive ../dotfiles/.config/nvim
-    )
-  );
+  ++
+    map
+      (
+        source:
+        let
+          relative = lib.removePrefix "${nvim-config}/" (toString source);
+        in
+        {
+          source = "${nvimSource}/${relative}";
+          destination = "${config.xdg.configHome}/nvim/${relative}";
+        }
+      )
+      (
+        builtins.filter (
+          source:
+          !(builtins.elem (builtins.baseNameOf source) [
+            "LICENSE"
+            "README.md"
+            ".vimrc"
+          ])
+        ) (lib.filesystem.listFilesRecursive nvim-config.outPath)
+      );
   seed =
-    relative:
-    let
-      source = ../dotfiles + "/${relative}";
-      destination =
-        if lib.hasPrefix ".config/" relative then
-          "${config.xdg.configHome}/${lib.removePrefix ".config/" relative}"
-        else
-          "${config.home.homeDirectory}/${relative}";
-    in
+    { source, destination }:
     ''
       if [ ! -e ${lib.escapeShellArg destination} ] && [ ! -L ${lib.escapeShellArg destination} ]; then
         run mkdir -p ${lib.escapeShellArg (builtins.dirOf destination)}
@@ -36,15 +61,15 @@ in
   home.file = {
     ".docker/cli-plugins/docker-compose".source =
       config.lib.file.mkOutOfStoreSymlink "${osConfig.homebrew.prefix}/opt/docker-compose/bin/docker-compose";
-    ".clang-format".source = ../dotfiles/.clang-format;
-    ".vimrc".source = ../dotfiles/.vimrc;
+    ".clang-format".source = ../.config/clang-format/config.yaml;
+    ".vimrc".source = ../.config/vim/vimrc;
     "Library/Application Support/k9s" = {
-      source = ../dotfiles/.config/k9s;
+      source = ../.config/k9s;
       recursive = true;
     };
   };
   xdg.configFile = lib.genAttrs [ "aerospace" "alacritty" ] (name: {
-    source = ../dotfiles/.config + "/${name}";
+    source = ../.config + "/${name}";
     recursive = true;
   });
   home.activation.seedRuntimeConfigs = lib.hm.dag.entryAfter [ "linkGeneration" ] (

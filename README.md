@@ -42,7 +42,7 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | `make plugins` | Install missing Vim, tmux, and Neovim plugins |
 | `make brewfile` | Generate a local `Brewfile` from the app list |
 | `make fmt` | Format Nix files; requires `rg` from ripgrep |
-| `make update` | Update Nix dependencies in `flake.lock` |
+| `make update` | Update Nix dependencies and the Neovim source version in `flake.lock` |
 
 ## Change the setup
 
@@ -53,7 +53,8 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | Dock, Finder, trackpad, timezone, firewall | [modules/darwin/macos.nix](modules/darwin/macos.nix) |
 | Shell, shortcuts, PATH, Node version manager | [home/shell.nix](home/shell.nix) |
 | Git name, email, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
-| App config files | [dotfiles/](dotfiles/) and the rules below |
+| App config files | [.config/](.config/) and the rules below |
+| Neovim config | [ythosa/nvim-config](https://github.com/ythosa/nvim-config), pinned in `flake.lock` |
 | Rules for installing config files | [home/runtime-configs.nix](home/runtime-configs.nix) |
 
 Add new files to Git with `git add path/to/file` so Nix can see them. Then apply your changes:
@@ -83,9 +84,11 @@ Choose the matching command. The flag keeps Brew from also removing other unused
 
 Linked files are read-only. Setup moves replaced files into unique adjacent backup folders such as `.zshrc.before-home-manager.ABC123/`. Previous backups are kept. If a backup cannot be made, setup stops before replacing that file.
 
-**For Neovim, btop, tmux, and VS Code, existing files are kept, even if they contain app defaults.** To replace a copied config with this repository's version: close the app, move that specific file to a backup, then run `make switch`. Copy local edits back into `dotfiles/` to carry them to another Mac.
+**For Neovim, btop, tmux, and VS Code, existing files are kept, even if they contain app defaults.** To replace a copied config with this repository's version: close the app, move that specific file to a backup, then run `make switch`. Copy local edits back into `.config/` to carry them to another Mac; Neovim changes belong in its separate repository.
 
-New apps can create configs normally. To include one in this setup, copy its config into `dotfiles/`, add an installation rule in `home/runtime-configs.nix`, and add the new file to Git. Keep caches, history, keys, and app data out of the repository.
+New apps can create configs normally. To include one in this setup, copy its config into `.config/APP/`, add an installation rule in `home/runtime-configs.nix`, and add the new file to Git. Keep caches, history, keys, and app data out of the repository.
+
+Neovim is fetched automatically from its own repository as a Nix source input. No Git submodule commands are needed. To update only its starter files, run `nix --extra-experimental-features 'nix-command flakes' flake update nvim-config`, review `flake.lock`, then run `make check` and `make switch`. Existing editable Neovim files are kept; the new source version is used for missing files and new Macs. A small [compatibility patch](home/nvim-compat.patch) preserves the fresh-Mac fixes until they are included upstream.
 
 ## Finish manually
 
