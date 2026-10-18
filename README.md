@@ -5,21 +5,25 @@ Nix manages the system and config files; Homebrew installs apps. Your macOS user
 
 ## Set up a Mac
 
-Open Terminal as your normal macOS user and paste this one command:
+This repository is private. First authenticate GitHub and clone it. For example, after [setting up your SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
 
 ```sh
-/bin/bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/ythosa/macbook-nix/main/setup.sh | /bin/bash'
+mkdir -p ~/projects
+git clone git@github.com:ythosa/macbook-nix.git ~/projects/macbook-nix
+cd ~/projects/macbook-nix
 ```
 
-It installs missing Command Line Tools, [Homebrew](https://docs.brew.sh/Installation), and [upstream Nix](https://nixos.org/download/), downloads this repository to `~/projects/macbook-nix`, applies the configuration, and installs Vim, tmux, and Neovim plugins. Existing tools and plugin repositories are kept.
+From the repository folder, run this one setup command as your normal macOS user:
+
+```sh
+/bin/bash setup.sh
+```
+
+GitHub authentication and the initial clone are manual prerequisites. If macOS asks to install Command Line Tools while cloning, finish Apple's installer, then repeat `git clone`.
+
+Setup installs missing Command Line Tools, [Homebrew](https://docs.brew.sh/Installation), and [upstream Nix](https://nixos.org/download/), applies the configuration, and installs Vim, tmux, and Neovim plugins. Existing tools and plugin repositories are kept. `/bin/bash setup.sh` also works before `make` is available.
 
 Enter your password when asked. Command Line Tools normally install automatically. If Apple's installer dialog opens, finish it; setup waits. When setup finishes, open a new Terminal window.
-
-Already have this repository? From its folder, run:
-
-```sh
-make setup
-```
 
 No username or folder paths need editing. The saved preferences include Moscow time, dark mode, and the application firewall turned off; see [Change the setup](#change-the-setup) to customize them.
 
