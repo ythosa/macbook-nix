@@ -10,8 +10,36 @@ command_line_tools_ready() {
         xcrun --find python3 >/dev/null 2>&1
 }
 
+install_command_line_tools() (
+    clt_marker="${1:-/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress}"
+    clt_marker_owned=0
+    if [[ ! -e "$clt_marker" && ! -L "$clt_marker" ]]; then
+        sudo touch "$clt_marker" || return 1
+        clt_marker_owned=1
+    fi
+    trap 'if [[ $clt_marker_owned == 1 ]]; then sudo rm -f "$clt_marker"; fi' EXIT
+    for clt_attempt in 1 2 3; do
+        if command_line_tools_ready; then return; fi
+        printf 'Searching for Command Line Tools (attempt %s/3)...\n' "$clt_attempt"
+        # Match Homebrew's version-independent label selection.
+        clt_label=$(LC_ALL=C softwareupdate -l |
+            grep -B 1 -E 'Command Line Tools' |
+            awk -F'*' '/^ *\*/ {print $2}' |
+            sed -e 's/^ *Label: //' -e 's/^ *//' |
+            sort -V | tail -n1) || clt_label=
+        if [[ -n "$clt_label" ]] && sudo softwareupdate -i "$clt_label" &&
+            sudo xcode-select --switch /Library/Developer/CommandLineTools &&
+            command_line_tools_ready; then
+            return
+        fi
+        if [[ $clt_attempt != 3 ]]; then sleep 5; fi
+    done
+    return 1
+)
+
 ensure_command_line_tools() {
     if command_line_tools_ready; then return; fi
+    if install_command_line_tools "${1:-}"; then return; fi
     printf 'Install Command Line Tools in the Apple dialog. Setup will wait.\n'
     local install_message
     if ! install_message=$(LC_ALL=C xcode-select --install 2>&1); then
@@ -101,9 +129,8 @@ setup_main() {
         destination="${1:-$HOME/projects/macbook-nix}"
     fi
     sudo -v
-    # Let Brew install missing CLT; keep a fallback for an existing Brew.
-    ensure_brew
     ensure_command_line_tools
+    ensure_brew
     ensure_nix
     checkout_repo "$destination"
     cd "$destination"

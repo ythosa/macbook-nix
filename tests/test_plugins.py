@@ -126,9 +126,9 @@ class PluginSetupTests(unittest.TestCase):
         # Replace setup stages with assertions, so no tools or home files run.
         program = '''source "$1"
 install_vim_plugins() {
-  [[ ":$PATH:" == *":/etc/profiles/per-user/$(id -un)/bin:"* ]]
-  [[ ":$PATH:" == *":$1/go/bin:"* ]]
-  [[ ":$PATH:" == *":$1/.local/bin:"* ]]
+  [[ ":$PATH:" == *":/etc/profiles/per-user/$(id -un)/bin:"* ]] || exit 1
+  [[ ":$PATH:" == *":$1/go/bin:"* ]] || exit 1
+  [[ ":$PATH:" == *":$1/.local/bin:"* ]] || exit 1
   printf '%s\\n' "$GIT_CONFIG_GLOBAL|$GIT_CONFIG_NOSYSTEM|$GIT_TERMINAL_PROMPT|$HOME"
 }
 install_tmux_plugins() { :; }
