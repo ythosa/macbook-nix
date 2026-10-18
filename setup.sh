@@ -101,8 +101,9 @@ setup_main() {
         destination="${1:-$HOME/projects/macbook-nix}"
     fi
     sudo -v
-    ensure_command_line_tools
+    # Let Brew install missing CLT; keep a fallback for an existing Brew.
     ensure_brew
+    ensure_command_line_tools
     ensure_nix
     checkout_repo "$destination"
     cd "$destination"

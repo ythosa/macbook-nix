@@ -155,7 +155,38 @@ setup_main "$1"
         result = self.workflow()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines()[:8],
-                         ['sudo', 'tools', 'brew', 'nix', 'checkout',
+                         ['sudo', 'brew', 'tools', 'nix', 'checkout',
+                          'make check', 'make switch', 'make plugins'])
+        self.assertIn('Setup complete', result.stdout)
+
+    def test_fresh_brew_installs_tools_before_apple_dialog_fallback(self):
+        repository = self.folder / 'checkout'
+        repository.mkdir()
+        (repository / 'flake.nix').touch()
+        result = self.shell('''
+uname() { if [[ "$1" == -s ]]; then echo Darwin; else echo arm64; fi; }
+id() { echo 501; }
+sudo() { echo sudo; }
+brew_ready=0
+tools_ready=0
+load_brew() { [[ $brew_ready == 1 ]]; }
+command_line_tools_ready() { [[ $tools_ready == 1 ]]; }
+run_installer() {
+    [[ "$1" == https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh ]]
+    brew_ready=1
+    tools_ready=1
+    echo brew-and-tools-installed
+}
+xcode-select() { echo GUI_SHOULD_NOT_RUN; return 91; }
+ensure_nix() { echo nix; }
+checkout_repo() { echo checkout; }
+make() { echo "make $*"; }
+setup_main "$1"
+''', repository)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn('GUI_SHOULD_NOT_RUN', result.stdout + result.stderr)
+        self.assertEqual(result.stdout.splitlines()[:7],
+                         ['sudo', 'brew-and-tools-installed', 'nix', 'checkout',
                           'make check', 'make switch', 'make plugins'])
         self.assertIn('Setup complete', result.stdout)
 

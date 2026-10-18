@@ -13,7 +13,7 @@ Open Terminal as your normal macOS user and paste this one command:
 
 It installs missing Command Line Tools, [Homebrew](https://docs.brew.sh/Installation), and [upstream Nix](https://nixos.org/download/), downloads this repository to `~/projects/macbook-nix`, applies the configuration, and installs Vim, tmux, and Neovim plugins. Existing tools and plugin repositories are kept.
 
-Enter your password when asked. If Apple's Command Line Tools dialog opens, finish that installer; setup waits for it. When setup finishes, open a new Terminal window.
+Enter your password when asked. Command Line Tools normally install automatically. If Apple's installer dialog opens, finish it; setup waits. When setup finishes, open a new Terminal window.
 
 Already have this repository? From its folder, run:
 
