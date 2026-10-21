@@ -12,3 +12,15 @@ local/
 Brewfile
 Brewfile.tmp
 __pycache__/
+/.config/git/identity
+/.config/macbook-nix/private-env.sh
+/.ssh/
+/.aws/
+/.kube/
+/.zsh_history
+/.bash_history
+/.tmux/resurrect/
+/.local/share/tmux/resurrect/
+*.before-home-manager.*/
+*.before-nix-darwin
+*.backup-before-nix

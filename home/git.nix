@@ -2,12 +2,10 @@
   programs.git = {
     enable = true;
     package = null;
+    includes = [ { path = "~/.config/git/identity"; } ];
     settings = {
       core.editor = "vim";
-      user = {
-        name = "ythosa";
-        email = "10869361+ythosa@users.noreply.github.com";
-      };
+      user.useConfigOnly = true;
       alias = {
         co = "checkout";
         last = "rev-parse --short HEAD";
