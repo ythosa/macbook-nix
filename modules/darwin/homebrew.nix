@@ -110,6 +110,8 @@
     ];
 
     casks = [
+      # CTF
+      "mitmproxy"
       # Desktop
       "claude"
       "firefox"
@@ -188,8 +190,6 @@
       "font-ubuntu-mono-nerd-font"
       "font-ubuntu-nerd-font"
       "font-victor-mono-nerd-font"
-      # CTF
-      "mitmproxy"
     ];
   };
 
