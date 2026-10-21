@@ -5,11 +5,11 @@ Nix manages settings, config files, Alacritty, and the Python SQL formatter; Hom
 
 ## Set up a Mac
 
-This repository is private. First authenticate GitHub and clone it. For example, after [setting up your SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
+Clone the repository:
 
 ```sh
 mkdir -p ~/projects
-git clone git@github.com:ythosa/macbook-nix.git ~/projects/macbook-nix
+git clone https://github.com/ythosa/macbook-nix.git ~/projects/macbook-nix
 cd ~/projects/macbook-nix
 ```
 
@@ -19,7 +19,7 @@ From the repository folder, run this one setup command as your normal macOS user
 /bin/bash setup.sh
 ```
 
-GitHub authentication and the initial clone are manual prerequisites. If macOS asks to install Command Line Tools while cloning, finish Apple's installer, then repeat `git clone`.
+The initial clone is manual. If the repository is private, authenticate GitHub first, or use its SSH URL after [setting up your SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh). If macOS asks to install Command Line Tools while cloning, finish Apple's installer, then repeat `git clone`.
 
 Setup installs missing Command Line Tools, [Homebrew](https://docs.brew.sh/Installation), and [upstream Nix](https://nixos.org/download/), applies the configuration, clones the editable Neovim config, and installs Vim, tmux, and Neovim plugins. Existing tools and plugin repositories are kept. `/bin/bash setup.sh` also works before `make` is available.
 
@@ -52,7 +52,8 @@ Run the commands below from this repository's folder. Use `make`, which supplies
 | Alacritty and Python SQL formatter (Nix packages) | [home/default.nix](home/default.nix) |
 | Dock, Finder, trackpad, timezone, firewall | [modules/darwin/macos.nix](modules/darwin/macos.nix) |
 | Shell, shortcuts, PATH, Node version manager | [home/shell.nix](home/shell.nix) |
-| Git name, email, editor, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
+| Git editor, shortcuts, SSH URL rules | [home/git.nix](home/git.nix) |
+| Your Git name and email | `~/.config/git/identity` (local only; see below) |
 | App config files | [.config/](.config/) and the rules below |
 | Neovim config | Your Git checkout at `~/.config/nvim` ([ythosa/nvim-config](https://github.com/ythosa/nvim-config)) |
 | Rules for installing config files | [home/runtime-configs.nix](home/runtime-configs.nix) |
@@ -104,6 +105,17 @@ Update manually with `git pull --ff-only` in the same folder. Initial cloning us
 
 ## Finish manually
 
+Set your Git identity once. It stays outside this repository and the Nix store:
+
+```sh
+mkdir -p ~/.config/git
+git config --file ~/.config/git/identity user.name "YOUR NAME OR HANDLE"
+git config --file ~/.config/git/identity user.email "YOUR GITHUB NOREPLY EMAIL"
+chmod 600 ~/.config/git/identity
+```
+
+Copy your `noreply` address from [GitHub Settings → Emails](https://github.com/settings/emails). The shared Git config includes this local file; existing repository-local identities also work. Without an explicit identity, Git refuses to invent a name or email from your Mac's account and hostname.
+
 Restore account logins, licenses, SSH keys, macOS permissions, NVM Node versions, additional npm/Go tools, and VS Code extensions yourself. Colima virtual machines are not copied. Enable Reduce Motion in System Settings if needed.
 
 Public editor plugins are installed over HTTPS without an SSH key. Your normal GitHub URLs still use SSH after setup, so [set up GitHub SSH access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) for your repositories. GDB needs a code-signing certificate before it can debug macOS processes.
@@ -135,3 +147,7 @@ Rollback does not restore Brew apps, editable configs, Git checkouts, or app dat
 An earlier revision was tested on 2026-10-18 in an Apple Silicon VM running macOS 26.6.2, initially without Command Line Tools, Homebrew, or Nix. Full setup, repeated setup, and checks after a power cycle passed: all Brew dependencies, Nix daemon, shell, personal config contents, and editor plugins.
 
 This was a resumed installation: interrupted downloads required retries. The VM image's stricter Gatekeeper policy was restored to the standard App Store and known developers mode, and Codex completions were reinstalled after that correction. Gatekeeper remained enabled. GitHub authentication, the initial clone, and macOS permission prompts were not automated.
+
+## License
+
+Original configuration and scripts are available under the [MIT license](LICENSE). Bundled third-party files keep their own licenses: see [.config/alacritty/themes/LICENSE](.config/alacritty/themes/LICENSE) and [.config/k9s/LICENSE](.config/k9s/LICENSE). Historical Neovim snapshots retain the GPL-3.0 license included in those revisions. Installed apps and downloaded plugins are covered by their upstream licenses.
