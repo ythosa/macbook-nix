@@ -105,6 +105,7 @@
       "ruff"
       "stylua"
       "typescript"
+      "uv"
       "virtualenv"
     ];
 
@@ -113,6 +114,7 @@
       "claude"
       "firefox"
       "foobar2000"
+      "insta360-link-controller"
       "nikitabobko/tap/aerospace"
       "obsidian"
       "rectangle"
