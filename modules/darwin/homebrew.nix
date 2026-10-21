@@ -16,6 +16,7 @@ in
       "dumkin/tap"
       "incu6us/tap"
       "nikitabobko/tap"
+      "theboredteam/boring-notch"
     ];
     enableZshIntegration = false; # Home Manager initializes the user's shell.
     onActivation = {
@@ -126,6 +127,7 @@ in
       "rectangle"
       "spotify"
       "telegram"
+      "theboredteam/boring-notch/boring-notch"
       "todoist-app"
       "tunnelblick"
       "vlc"
