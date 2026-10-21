@@ -1,3 +1,14 @@
+let
+  ctf = {
+    brews = [
+      "binwalk"
+      "gdb"
+      "ghidra"
+      "nmap"
+    ];
+    casks = [ "mitmproxy" ];
+  };
+in
 {
   homebrew = {
     enable = true;
@@ -13,7 +24,7 @@
       cleanup = "none";
     };
 
-    brews = [
+    brews = ctf.brews ++ [
       # Libraries
       "adwaita-icon-theme"
       "dav1d"
@@ -24,11 +35,6 @@
       "hdf5"
       "libxml2"
       "pkgconf"
-      # CTF
-      "binwalk"
-      "gdb"
-      "ghidra"
-      "nmap"
       # CLI
       "bash"
       "btop"
@@ -109,9 +115,7 @@
       "virtualenv"
     ];
 
-    casks = [
-      # CTF
-      "mitmproxy"
+    casks = ctf.casks ++ [
       # Desktop
       "claude"
       "firefox"
