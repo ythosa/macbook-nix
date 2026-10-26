@@ -125,6 +125,7 @@ in
       "nikitabobko/tap/aerospace"
       "obsidian"
       "rectangle"
+      "rode-central"
       "spotify"
       "telegram"
       "theboredteam/boring-notch/boring-notch"
