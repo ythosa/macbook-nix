@@ -37,6 +37,7 @@ in
       "/Library/TeX/texbin"
       "${config.home.homeDirectory}/go/bin"
       "${config.home.homeDirectory}/.local/bin"
+      "${config.home.homeDirectory}/.o3-cli/bin"
     ];
     activation.createNvmDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run mkdir -p "${config.home.homeDirectory}/.nvm"
