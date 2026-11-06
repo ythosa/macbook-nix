@@ -49,6 +49,11 @@ in
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+    # Parent processes may inherit Home Manager's session guard with an outdated PATH.
+    envExtra = ''
+      typeset -U path
+      path+=(${lib.escapeShellArgs config.home.sessionPath})
+    '';
     # Login environment; interactive shells also have a guarded fallback below.
     profileExtra = brewInit;
     oh-my-zsh = {
